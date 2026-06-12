@@ -1,38 +1,20 @@
-use std::cmp::Ordering;
-use std::io;
-use rand::Rng;
+use std::{cmp::Ordering, io::{self, Write}};
+use rand::random_range;
 use colored::*;
+use rand::prelude::IndexedRandom;
 
-fn main() {
-    const LATUTA_EASTER: &str = "/latuta";
-    const RICHARD_EASTER: &str = "/richard";
-    const STOP_COMAND: &str = "/stop";
-    const CHEATS_COMAND: &str = "/cheats";
-    const RANDOM_MIN: u32 = 1;
-    const EASY_RANDOM_MAX: u32 = 50;
-    const NORMAL_RANDOM_MAX: u32 = 100;
-    const HARD_RANDOM_MAX: u32 = 1000;
-    const UNPOSIBLE_RANDOM_MAX: u32 = 10000;
+const SYS_COLOR: Color = Color::TrueColor { r: 244, g: 208, b: 63 };
+const BG_COLOR: Color = Color::TrueColor { r: 160, g: 135, b: 40 };
+const CORRECT_COLOR: Color = Color::TrueColor { r: 98, g: 168, b: 57 };
+const WRONG_COLOR: Color = Color::Red;
+
+const RANDOM_MIN: i32 = 1;
+const EASY_RANDOM_MAX: i32 = 50;
+const NORMAL_RANDOM_MAX: i32 = 100;
+const HARD_RANDOM_MAX: i32 = 1000;
+const UNPOSIBLE_RANDOM_MAX: i32 = 10000;
     
-    let mut trying = 0;
-    let mut mode = String::new();
-    let mut tips_off = 0;
-    let mut best_trying_one = 999;
-    let mut round = 1;
-    let mut best_trying_two = 999;
-    let mut best_trying_duo = 0;
-    let mut best_result_time = 0;
-    let mut setting_or_game = String::new();
-    let mut return_to_menu = String::new();
-    let mut cheats_on = 0;
-
-    let mut castom_num_one = String::new();
-    let mut castom_num_two = String::new();
-    let mut castom = 0;
-    let mut castom_one = 0;
-    let mut castom_two = 0;
-    let mut castom_tips = String::new();
-
+fn main() {
     println!("{}", "
  _______  ______  __    _ 
 |       ||    _ ||  |  | |
@@ -41,302 +23,323 @@ fn main() {
 |   ||  ||    __||  _    |
 |   |_| ||   |\\\\ | | |   |
 |_______||___| \\\\|_|  |__|
-    ".purple().bold());
-    println!("{}", "Добро пожаловать в GRN Definitive Edition!".purple().bold());  
-    'start: loop {
-        println!("{}", "1)Играть, 2)Описание".blue());
+    ".color(SYS_COLOR));
+    
+    println!("{}", "Welcome to Guess Random Number DFE!".color(SYS_COLOR));
+    println!("{}", "Made by: @ProtasMV".color(BG_COLOR));
+    println!();
+    
+    loop {
+        println!("{}", "1)Play, 2)Description".color(SYS_COLOR));
 
-        io::stdin()
-            .read_line(&mut setting_or_game)
-            .expect("Error 16");
-        
-        if setting_or_game.trim() == "2"||setting_or_game.trim().to_lowercase() == "two"||setting_or_game.trim().to_lowercase() == "описание"{
-            println!("
-Суть данной игры — улучшить оригинальную 'Угадайку' [Guessing Game] из официальной обучающей
-книги по Rust [The Rust Book]. В то время как оригинальный код занимает около 30 строк,
- версия Definitive Edition содержит 325+ строк");
-            println!(" ");
-            println!("
-Также в игре присудствуют команды. Их можно ввести почти в любом месте,
-чтобы начать ввод команды, используйте символ [/].
-На данный момент доступны следующие команды: /stop, /cheats");
-            println!(" ");
-            println!("
-Конечно же, в игре есть пасхалки. Активировать их можно с помощью команд через [/]. 
-На данный момент доступны: /richard, /latuta.");
-            println!("");
-            println!("Нажмите любую клавишу для возвращения в главное меню");
+        print!("{}", "Mode: ".color(BG_COLOR));
+        flush();
 
-            setting_or_game.clear();
-            io::stdin()
-                .read_line(&mut return_to_menu)
-                .expect("Error 17");
+        let (user_choise, error) = input();
+        if error {break}
 
-            match return_to_menu.trim() {
-                _ => continue
-            }
-            } else if setting_or_game.trim() == "1" || setting_or_game.trim().to_lowercase() == "one" || setting_or_game.trim().to_lowercase() == "играть"{
-                    loop {
-                println!("{}", "На какой сложности вы бы хотели сыграть?".blue()); 
-                println!("{}", "1) Лёгкая [1-50], 2) Нормальная [1-100], 3) Сложная [1-1000],".green());     
-                println!("{}", "4)Невозможная [1-10000] + нет подсказок больше/меньше, 5) Кастомная [самостоятельно указать диапазон]".green());
-
-                io::stdin()
-                    .read_line(&mut mode)
-                    .expect("Error 5");
-
-                match mode.trim() {
-                    "1" => break,
-                    "2" => break,
-                    "3" => break,
-                    "4" => break,
-                    "5" => {castom = 1; break},
-                    STOP_COMAND => break 'start,
-                    CHEATS_COMAND => {
-                        setting_or_game.clear();
-                        mode.clear();
-                        if cheats_on == 0 {
-                            cheats_on = 1; println!("Читы успешно активированы"); continue;
-                        }else if cheats_on == 1{
-                            cheats_on = 0; println!("Читы успешно выключены"); continue; 
-                        }else {
-                            println!("Error 22")
-                        }
-                    }
-                    LATUTA_EASTER => {setting_or_game.clear(); println!("Латута тварь"); continue;}
-                    RICHARD_EASTER => {setting_or_game.clear(); println!("Ну он крутой"); continue;}
-                    &_ => continue
-                }
-                
-            }
-
-            loop {
-                
-                if castom == 1 {
-
-                    castom = 0;
-
-                    loop {
-                        println!("");
-                        println!("Первое число конфигурации: ");
-
-                        io::stdin()
-                            .read_line(&mut castom_num_one)
-                            .expect("Error 9");
-
-                        castom_one = match castom_num_one.trim().parse() {
-                            Ok(user_num) => user_num,
-                            Err(_) => {println!("Error 10, подсказка: возможно, вы ввели данные типа str, попробуйте ввести только числа"); continue;}  
-                        };
-                        break;
-                    };
-
-                loop {
-                    println!("");
-                    println!("Второе число конфигурации: ");
-
-                    io::stdin()
-                        .read_line(&mut castom_num_two)
-                        .expect("Error 11");
-
-                    castom_two = match castom_num_two.trim().parse() {
-                        Ok(user_num) => user_num,
-                        Err(_) => {println!("Error 12, подсказка: возможно, вы ввели данные типа str, попробуйте ввести только числа"); continue;}                    
-                    };
-
-                    if castom_two < castom_one {
-                        println!("Error 13, подсказка: большее число не должно быть меньше меньшего"); castom_num_two.clear(); continue; 
-                    }
-                    break;
-                }
-                
-                loop {
-                    println!("Выключить подсказки больше/меньше? [Да/Нет]");
-                    io::stdin()
-                        .read_line(&mut castom_tips)
-                        .expect("Error 14");
-
-                    match castom_tips.trim() {
-                        "да"|"y" => {tips_off = 1; break},
-                        "нет"|"n" => {tips_off = 0; break},
-                        _ => {println!("Error 15, подсказка: попробуйте ввести [1] или [2]"); println!(""); castom_tips.clear(); continue}             
-                        }
-                    }   
-                } 
-
-                let random_number = match mode.trim() {
-                    "1" => rand::thread_rng().gen_range(1..=50),
-                    "2" => rand::thread_rng().gen_range(1..=100),
-                    "3" => rand::thread_rng().gen_range(1..=1000),
-                    "4" => {tips_off = 1; rand::thread_rng().gen_range(1..=10000)},
-                    "5" => {rand::thread_rng().gen_range(castom_one..=castom_two)}
-                    _  => todo!()
-                };
-
-            if cheats_on == 1 {println!("[ЧИТЫ]неизвестное число: {}", random_number);}
-
-            'game: loop {
-                round += 1;
-                
-                let mut user_continue = String::new();
-                let mut user_guess = String::new(); 
-
-                println!(" ");
-                println!("Твоя догадка:");
-
-                io::stdin()
-                    .read_line(&mut user_guess)
-                    .expect("Error 1");
-
-                if user_guess.trim().to_lowercase() == STOP_COMAND{
-                    break 'start;
-                } else if user_guess.trim().to_lowercase() == CHEATS_COMAND {
-                    user_guess.clear();
-                    
-                    if cheats_on == 0 {
-                        cheats_on = 1; println!("Читы успешно активированы"); continue;
-                    }else if cheats_on == 1{
-                        cheats_on = 0; println!("Читы успешно выключены"); continue; 
-                    }else {
-                        println!("Error 21")
-                    }
-                } else if user_guess.trim().to_lowercase() == LATUTA_EASTER {
-                    user_guess.clear();
-                    println!("Латута тварь");
-                    continue;
-                } else if user_guess.trim().to_lowercase() == RICHARD_EASTER {
-                    println!("Он крутой");
-                    continue;
-                }
-
-                let user_guess: u32 = match user_guess.trim().parse() {
-                    Ok(num) => num,
-                    Err(_) => {println!("Error 2, ошибка ввода, подсказка: ввод не поддерживает текстовый формат"); continue;} 
-                };
-
-                if mode.trim() == "1" && user_guess > EASY_RANDOM_MAX || mode.trim() == "1" && user_guess < RANDOM_MIN{
-                    println!("{}","Эй, вообще-то мы договаривались играть в диапазоне [1-50], попытка не засчитана!".yellow());
-                } else if mode.trim() == "2" && user_guess > NORMAL_RANDOM_MAX || mode.trim() == "2" && user_guess < RANDOM_MIN{
-                    println!("{}","Эй, вообще-то мы договаривались играть в диапазоне [1-100], попытка не засчитана!".yellow());                
-                } else if mode.trim() == "3" && user_guess > HARD_RANDOM_MAX || mode.trim() == "3" && user_guess < RANDOM_MIN{
-                    println!("{}","Эй, вообще-то мы договаривались играть в диапазоне [1-1000], попытка не засчитана!".yellow());
-                } else if mode.trim() == "4" && user_guess > UNPOSIBLE_RANDOM_MAX || mode.trim() == "4" && user_guess < RANDOM_MIN{
-                    println!("{}","Эй, вообще-то мы договаривались играть в диапазоне [1-10000], попытка не засчитана!".yellow());
-                }else if mode.trim() == "5" && user_guess > castom_two || mode.trim() == "5" && user_guess < castom_one{
-                    print!("{}", "Ей, вообще-то мы договаривались играть в радиусе ".yellow());
-                    print!("[{}-{}]", castom_one, castom_two);
-                    println!("{}", ", попытка не засчитана!".yellow())
-                }else{
-                    best_result_time += 1;
-                    
-                    match user_guess.cmp(&random_number) {
-                    Ordering::Greater => 
-                        {if tips_off == 0 {println!("{}", "Число меньше".yellow()); trying += 1}
-                        else if tips_off == 1 {println!("{}", "Неверно".yellow()); trying += 1}
-                        else {println!("Error 7");}},
-                    Ordering::Less => 
-                        {if tips_off == 0 {println!("{}", "Число больше".yellow()); trying += 1;}
-                        else if tips_off == 1 {println!("{}", "Неверно".yellow()); trying += 1}
-                        else {println!("Error 8");}},
-                    Ordering::Equal => {
-                        trying += 1;                    
-                        
-                        if round%2 == 0 && trying<best_trying_one {
-                            best_trying_one = trying
-                        } else if round%2 != 0 && trying<best_trying_two {
-                            best_trying_two = trying
-                        }
-                        
-                        if trying<=0 {
-                            println!("{}", "Ты выиграл! Каким образом!?".red().bold());
-                        } else if trying==1 {
-                            println!("{}", "Ты выиграл! Даже не знаю, как тебе это удалось!".purple().bold())
-                        } else if trying>1 && trying<=5 {
-                            println!("{}", "Ты выиграл! Ричард горд твоим мастерством!".purple().bold())
-                        } else if trying>5 && trying <=15 {
-                            println!("{}", "Ты выиграл! Молодец!".green().bold())
-                        } else if trying==994 || trying==993 {
-                            println!("{}", "Ты выиграл! Пасхалочка".purple().bold())
-                        } else {
-                            println!("{}", "Ты выиграл!".green().bold())                        
-                        }
-
-                        print!("{}", "Угадано спустя попыток: ".blue());
-                        println!("{}", trying); 
-
-                        if best_trying_one > best_trying_two {
-                            best_trying_duo = best_trying_two
-                        } else if best_trying_one < best_trying_two {
-                            best_trying_duo = best_trying_one
-                        }
-                        
-                        if best_result_time >= 2 {
-                            print!("{}", "Твой лучший результат в этой сессии: ".yellow());
-                            println!("{}", best_trying_duo);
-                        }
-                        
-
-                        loop {
-                        println!("");
-                        println!("Продолжить? [Да/Нет]");
-                    
-                        io::stdin()
-                            .read_line(&mut user_continue)
-                            .expect("Error 3");
-                                                        
-                            if user_continue.trim().to_lowercase() == "да" || user_continue.trim().to_lowercase() == "y" {
-                                trying = 0; break 'game;
-                            } else if user_continue.trim().to_lowercase() == "нет" || user_continue.trim().to_lowercase() == "n" {
-                                break 'start;
-                            } else if user_continue.trim().to_lowercase() == STOP_COMAND {
-                                break 'start;
-                            } else if user_continue.trim().to_ascii_lowercase() == CHEATS_COMAND{
-                                user_continue.clear();
-                                if cheats_on == 0 {
-                                    cheats_on = 1; println!("Читы успешно активированы"); continue;
-                                }else if cheats_on == 1{
-                                    cheats_on = 0; println!("Читы успешно выключены"); continue; 
-                                }else {
-                                    println!("Error 20")
-                                }                          
-                            } else if user_continue.trim().to_lowercase() == LATUTA_EASTER {
-                                setting_or_game.clear();
-                                println!("Латута тварь");
-                                continue;                               
-                            } else if user_continue.trim().to_lowercase() == RICHARD_EASTER  {
-                                setting_or_game.clear();
-                                println!("Он крутой");  
-                                continue;                          
-                            } else {
-                                println!("Error 4, подсказка: попробуйте написать [Да] или [Нет] "); continue;                                   
-                            }
-                        }   
-                    }
-                }
+        match user_choise.trim().to_lowercase().as_str() {
+            "1"|"p"|"play" => {
+                difficult();
+                break
+            },
+            "2"|"d"|"description"|"des" => {
+                description();
+            },
+            "3"|"q"|"quit"|"exit" => {
+                break
+            },
+            _=> {
+                println!("Invalid input, please try again");
+                println!();
             }
         }
     }
-        } else if setting_or_game.trim().to_lowercase() == STOP_COMAND{
-            break 'start;
-        } else if setting_or_game.trim().to_lowercase() == CHEATS_COMAND{
-            setting_or_game.clear();
-            if cheats_on == 0 {
-                cheats_on = 1; println!("Читы успешно активированы"); continue;
-            }else if cheats_on == 1{
-                cheats_on = 0; println!("Читы успешно выключены"); continue; 
-            }else {
-                println!("Error 19")
-            }
-        } else if setting_or_game.trim().to_lowercase() == LATUTA_EASTER {
-            setting_or_game.clear();
-            println!("Латута тварь");
-            continue;
-        } else if setting_or_game.trim().to_lowercase() == RICHARD_EASTER   {
-            setting_or_game.clear();
-            println!("Он крутой");
-            continue;
-        } else {
-            println!("Error 18, подсказка: программе не удалось использовать ваш ввод, попробуйте ещё раз"); setting_or_game.clear(); continue;        
+}
+
+fn difficult() {
+    loop {
+        println!();
+        
+        println!("Select difficulty");
+        println!("1)Easy, {RANDOM_MIN}-{EASY_RANDOM_MAX}. 2)Normal, {RANDOM_MIN}-{NORMAL_RANDOM_MAX}. 3)Hard, {RANDOM_MIN}-{HARD_RANDOM_MAX}.");
+        println!();
+        println!("4)Unposible, {RANDOM_MIN}-{UNPOSIBLE_RANDOM_MAX} + disable Higher/Lower tips.");
+        println!("5)Custom mode, You can choose the range and turn the hints on/off.");
+        
+        let (user_difficult, error) = input();
+        if error {break}
+
+        match user_difficult.as_str().trim() {
+            "1" => {rand_num(RANDOM_MIN, EASY_RANDOM_MAX, true)},
+            "2" => {rand_num(RANDOM_MIN, NORMAL_RANDOM_MAX, true)},
+            "3" => {rand_num(RANDOM_MIN, HARD_RANDOM_MAX, true)},
+            "4" => {rand_num(RANDOM_MIN, UNPOSIBLE_RANDOM_MAX, false)},
+            "5" => {
+                let (custom_min_range, custom_max_range, error) = loop {
+                    println!();
+                    let (error, custom_min_range) = custom_mode_num("Minimum");
+                    if error {break (0, 0, true)}
+
+                    let (error, custom_max_range) = custom_mode_num("Maximum");
+                    if error {break (0, 0, true)}
+                    
+                    if custom_max_range < custom_min_range {
+                        println!("Invalid values, maximum value cannot be less than minimum");
+                        continue
+                    } else {
+                        break (custom_min_range, custom_max_range, false)
+                    }
+                };
+                if error {break}
+                
+                let (tips, error) = tips_swith();
+                if error {break}
+
+                rand_num(custom_min_range, custom_max_range, tips);
+            },
+            _ => {println!("Invalid input, please try again"); continue}
         }
-    } 
+        break
+    }
+}
+
+fn rand_num(rand_min: i32, rand_max: i32, tips: bool) {   
+    'reset: loop {
+        let mut best_attempt = u32::MAX;
+        
+        for round in 1..999999999 {
+            let rand_number = random_range(rand_min..=rand_max);
+            
+            let (error, attempt) = main_game(rand_number, 0, tips, rand_min, rand_max);
+            if error {break 'reset}
+
+            if attempt < best_attempt {
+                best_attempt = attempt
+            }
+
+            win(attempt, round, best_attempt);
+            if !user_continue() {break 'reset};
+        }
+    }
+}
+
+fn main_game(rand_number: i32, mut attempt: u32, tips: bool, rand_min: i32, rand_max: i32) -> (bool, u32)  { 
+    loop {
+        println!();        
+        
+        //cheats
+        print!("{}", "CHEATS: ".color(BG_COLOR));
+        println!("{rand_number}");
+        
+        print!("{}", "Enter your guess: ".color(SYS_COLOR));
+        flush();
+        let (user_try, error) = input();
+        if error {break (true, 0)}
+
+        let (user_try, error) = parse_to_i32(user_try);
+        if error {println!("Invalid input, tip: try write number"); continue}
+        if user_crossed_border(user_try, rand_min, rand_max) {
+            continue
+        }
+
+        match user_try.cmp(&rand_number) {
+            Ordering::Less => {
+                tip(tips, "smaller");
+                attempt += 1;
+                continue
+            },
+            Ordering::Greater => { 
+                tip(tips, "bigger");
+                attempt += 1;
+                continue
+            },
+            Ordering::Equal => {        
+                attempt += 1;
+                break (false, attempt);
+            }
+        }
+    }
+}
+
+fn user_crossed_border(user_try: i32, rand_min: i32, rand_max: i32) -> bool {
+    if user_try > rand_max || user_try < rand_min {
+        println!("Actually, we agreed to play within a ({rand_min}-{rand_max}) radius, attempt not counted");
+        true
+    } else {
+        false
+    }
+}
+
+fn tip(tips: bool, typ: &str) {
+    if !tips {
+        println!("{}", "Incorrect!".color(WRONG_COLOR));
+    } else {
+        if typ == "bigger" {
+            println!("{}", "Lower!".color(WRONG_COLOR))
+        } else if typ == "smaller"{
+            println!("{}", "Higher!".color(WRONG_COLOR))
+        }
+    }    
+}
+
+fn win(attempt: u32, round: u32, best_attempt: u32) {
+    println!();
+    
+    let rank = rank_sys(attempt);
+    println!("{rank}"); 
+
+    if round >= 2 { 
+        print!("{}", "Best score: ".color(SYS_COLOR));
+        println!("{best_attempt}");
+    }
+
+    print!("{}", "Attempt: ".color(BG_COLOR));
+    println!("{attempt}");
+}
+
+fn custom_mode_num(max_or_min: &str) -> (bool, i32) {
+    let (error, cast_num) = loop {
+        print!("{max_or_min} number: ");
+        flush();
+
+        let (cast_num, error) = input();
+        if error {break (true, 0)}
+
+        let (cast_num, error) = parse_to_i32(cast_num);
+        if error {println!("Invalid input, tip: try write number"); continue}
+        
+        break (false, cast_num)
+    };
+    
+    (error, cast_num)
+}
+
+fn tips_swith() -> (bool, bool) {
+    let (tips, error) = loop {
+        print!("Enable tips? (Y/N):");
+        flush();
+
+        let (tips, error) = input();
+        if error {break (true, true)}
+
+        let tips = match tips.trim().to_lowercase().as_str() {
+            "y"|"yes"|"enable" => true,
+            "n"|"no"|"disable" => false,
+            _ => continue
+        };
+
+        break (tips, false)
+    };
+    (tips, error)
+}
+
+fn user_continue() -> bool {
+    loop {
+        println!();
+        print!("{}", "Continue? (Y/N): ".color(SYS_COLOR));
+        flush();
+
+        let (user_want, error) = input();
+        if error {return false}
+
+        match user_want.trim().to_lowercase().as_str() {
+            "1"|"y"|"yes" => break true,
+            "2"|"n"|"no" => break false,
+            _=> println!("Invalid input, please try again")
+        }
+    }
+}
+
+fn description() {
+    println!("Not available in dev-beta");
+    println!();
+}
+
+fn input() -> (String, bool) {
+    let mut data = String::new();
+    match io::stdin().read_line(&mut data) {
+        Ok(_) => {return (data, false)},
+        Err(er) => {println!("Error: {er}"); return (data, true)}
+    }
+}
+
+fn flush() -> bool {
+    match io::stdout().flush() {
+        Ok(_) => {false}
+        Err(er) => {println!("Error: {er}"); true}
+    }
+}
+
+fn parse_to_i32(data: String) -> (i32, bool) {
+    match data.trim().parse() {
+        Ok(num) => (num, false),
+        Err(er) => {println!("Error: {er}"); (0, true)}
+    }
+}
+
+fn rank_sys(attempt: u32) -> String {
+    let mut rng = rand::rng();
+    let ranks: &[&str] = match attempt {
+        0 => 
+            &[
+                "You won, but how?!",
+                "phrase #2",
+                "phrase #3",
+                "phrase #4",
+                "phrase #5"
+            ],
+        1 => 
+            &[
+                "You won! I don't even know how you did it!",
+                "phrase #2",
+                "phrase #3",
+                "phrase #4",
+                "phrase #5"
+            ],
+        2..=3 => 
+            &[
+                "You won! Richard the cat is proud of your skill!",
+                "phrase #2",
+                "phrase #3",
+                "phrase #4",
+                "phrase #5"
+            ],
+        4..=7 => &[
+                "You won! Brilliant strategy and great intuition!",
+                "phrase #2",
+                "phrase #3",
+                "phrase #4",
+                "phrase #5"
+            ],
+        8..=12 => &[
+                "You won! Solid result, steady and precise",
+                "phrase #2",
+                "phrase #3",
+                "phrase #4",
+                "phrase #5"
+            ],
+        13..=15 => &[
+                "You won! Not a bad result, but Richard knows you can do better",
+                "phrase #2",
+                "phrase #3",
+                "phrase #4",
+                "phrase #5"
+            ],
+        994 | 993 => &[
+                "You won! But wait... easter egg! (EASTER_EGG (1/5)",
+                "You won! But wait... easter egg! (EASTER_EGG (2/5)",
+                "You won! But wait... easter egg! (EASTER_EGG (3/5)",
+                "You won! But wait... easter egg! (EASTER_EGG (4/5)",
+                "You won! But wait... easter egg! (EASTER_EGG (5/5)"
+            ],
+        _ => &[
+               "You won! Great job",
+                "phrase #2",
+                "phrase #3",
+                "phrase #4",
+                "phrase #5"
+            ]
+    };
+    ranks.choose(&mut rng).expect("Random ranks error").to_string()
 }
