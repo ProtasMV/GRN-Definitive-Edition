@@ -1,10 +1,11 @@
-Суть данной игры — улучшить оригинальную 'Угадайку' [Guessing Game] из официальной обучающей
-книги по Rust [The Rust Book]. В то время как оригинальный код занимает около 30 строк,
-версия Definitive Edition содержит 325+ строк
+How to run "GRN definitive edition" game?
 
-Также в игре присудствуют команды. Их можно ввести почти в любом месте,
-чтобы начать ввод команды, используйте символ [/].
-На данный момент доступны следующие команды: /stop, /cheats
+  1. Go to "Releases" and download latest version
+  2. Download .exe file
+  3.Find the game file with the ".exe" extension and run it
 
-Конечно же, в игре есть пасхалки. Активировать их можно с помощью команд через [/]. 
-На данный момент доступны: /richard, /latuta.
+for version 1.0.1 and below
+
+  Go to "Releases" and download ".exe" file
+  Download .rar file and extract the "release" folder
+  Go to "release" folder, find ".exe" and run it
