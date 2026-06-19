@@ -1,8 +1,8 @@
 How to run "GRN definitive edition" game?
 
   1. Go to "Releases" and download latest version
-  2. Download .exe file                          
-  3.Find the game file with the ".exe" extension and run it
+  2. Download .exe file
+  3. Find the game file with the ".exe" extension and run it
 
 for version 1.0.1 and below
 
